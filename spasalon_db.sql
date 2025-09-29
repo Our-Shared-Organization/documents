@@ -21,7 +21,7 @@ SET @@SESSION.SQL_LOG_BIN= 0;
 -- GTID state at the beginning of the backup 
 --
 
-SET @@GLOBAL.GTID_PURGED=/*!80000 '+'*/ '1543d9f2-985b-11f0-b1c0-ae2d1403823e:1-81';
+SET @@GLOBAL.GTID_PURGED=/*!80000 '+'*/ '1543d9f2-985b-11f0-b1c0-ae2d1403823e:1-82';
 
 --
 -- Table structure for table `appointments`
@@ -74,6 +74,7 @@ CREATE TABLE `client` (
   `clientEmail` text NOT NULL,
   `clientPhone` varchar(100) DEFAULT NULL,
   `clientPassword` text NOT NULL,
+  `isActive` tinyint(1) NOT NULL DEFAULT '1',
   PRIMARY KEY (`clientId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -153,4 +154,4 @@ SET @@SESSION.SQL_LOG_BIN = @MYSQLDUMP_TEMP_LOG_BIN;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-09-29  8:50:11
+-- Dump completed on 2025-09-29  8:52:25
