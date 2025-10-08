@@ -21,127 +21,147 @@ SET @@SESSION.SQL_LOG_BIN= 0;
 -- GTID state at the beginning of the backup 
 --
 
-SET @@GLOBAL.GTID_PURGED=/*!80000 '+'*/ '1543d9f2-985b-11f0-b1c0-ae2d1403823e:1-82';
+SET @@GLOBAL.GTID_PURGED=/*!80000 '+'*/ '1543d9f2-985b-11f0-b1c0-ae2d1403823e:1-113';
 
 --
--- Table structure for table `appointments`
+-- Table structure for table `booking`
 --
 
-DROP TABLE IF EXISTS `appointments`;
+DROP TABLE IF EXISTS `booking`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `appointments` (
-  `AppointmentId` int NOT NULL AUTO_INCREMENT,
-  `clientId` int NOT NULL,
-  `staffId` int NOT NULL,
-  `serviceId` int NOT NULL,
-  `AppointmentDate` datetime NOT NULL,
-  `EndTime` datetime NOT NULL,
-  `Status` varchar(20) DEFAULT 'Scheduled',
-  `CreatedAt` datetime DEFAULT CURRENT_TIMESTAMP,
-  `UpdatedAt` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`AppointmentId`),
-  KEY `ClientId` (`clientId`),
-  KEY `ServiceId` (`serviceId`),
-  KEY `appointments_staff_staffId_fk` (`staffId`),
-  CONSTRAINT `appointments_ibfk_1` FOREIGN KEY (`clientId`) REFERENCES `client` (`clientId`) ON UPDATE CASCADE,
-  CONSTRAINT `appointments_ibfk_3` FOREIGN KEY (`serviceId`) REFERENCES `services` (`ServiceId`),
-  CONSTRAINT `appointments_staff_staffId_fk` FOREIGN KEY (`staffId`) REFERENCES `staff` (`staffId`) ON UPDATE CASCADE,
-  CONSTRAINT `appointments_chk_1` CHECK ((`Status` in (_utf8mb4'Scheduled',_utf8mb4'Completed',_utf8mb4'Cancelled',_utf8mb4'NoShow')))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+CREATE TABLE `booking` (
+  `bookingId` int NOT NULL AUTO_INCREMENT,
+  `bookingUserId` int DEFAULT NULL,
+  `bookingServiceId` int DEFAULT NULL,
+  `bookingStart` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `bookingFinish` timestamp NULL DEFAULT NULL,
+  `bookingStatus` enum('booked','confirmed','executing','finished','canceled') NOT NULL,
+  `bookingBookedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`bookingId`),
+  KEY `booking___fk` (`bookingUserId`),
+  KEY `booking_service_serviceId_fk` (`bookingServiceId`),
+  CONSTRAINT `booking___fk` FOREIGN KEY (`bookingUserId`) REFERENCES `user` (`userId`) ON UPDATE CASCADE,
+  CONSTRAINT `booking_service_serviceId_fk` FOREIGN KEY (`bookingServiceId`) REFERENCES `service` (`serviceId`) ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Сеанс';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `appointments`
+-- Dumping data for table `booking`
 --
 
-LOCK TABLES `appointments` WRITE;
-/*!40000 ALTER TABLE `appointments` DISABLE KEYS */;
-/*!40000 ALTER TABLE `appointments` ENABLE KEYS */;
+LOCK TABLES `booking` WRITE;
+/*!40000 ALTER TABLE `booking` DISABLE KEYS */;
+/*!40000 ALTER TABLE `booking` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
--- Table structure for table `client`
+-- Table structure for table `category`
 --
 
-DROP TABLE IF EXISTS `client`;
+DROP TABLE IF EXISTS `category`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `client` (
-  `clientId` int NOT NULL AUTO_INCREMENT,
-  `clientName` varchar(100) NOT NULL,
-  `clientSurname` varchar(100) NOT NULL,
-  `clientEmail` text NOT NULL,
-  `clientPhone` varchar(100) DEFAULT NULL,
-  `clientPassword` text NOT NULL,
-  `isActive` tinyint(1) NOT NULL DEFAULT '1',
-  PRIMARY KEY (`clientId`)
+CREATE TABLE `category` (
+  `categoryId` int NOT NULL AUTO_INCREMENT,
+  `categoryName` varchar(255) NOT NULL,
+  `categoryDescription` text,
+  `categoryStatus` tinyint(1) NOT NULL DEFAULT '1',
+  PRIMARY KEY (`categoryId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `client`
+-- Dumping data for table `category`
 --
 
-LOCK TABLES `client` WRITE;
-/*!40000 ALTER TABLE `client` DISABLE KEYS */;
-/*!40000 ALTER TABLE `client` ENABLE KEYS */;
+LOCK TABLES `category` WRITE;
+/*!40000 ALTER TABLE `category` DISABLE KEYS */;
+/*!40000 ALTER TABLE `category` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
--- Table structure for table `services`
+-- Table structure for table `role`
 --
 
-DROP TABLE IF EXISTS `services`;
+DROP TABLE IF EXISTS `role`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `services` (
-  `ServiceId` int NOT NULL AUTO_INCREMENT,
-  `Name` varchar(255) NOT NULL,
-  `Description` text,
-  `Duration` int NOT NULL,
-  `Price` decimal(10,2) NOT NULL,
-  `Category` varchar(100) DEFAULT NULL,
-  `IsActive` tinyint(1) DEFAULT '1',
-  PRIMARY KEY (`ServiceId`)
+CREATE TABLE `role` (
+  `roleId` int NOT NULL AUTO_INCREMENT,
+  `roleName` varchar(255) NOT NULL,
+  PRIMARY KEY (`roleId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `services`
+-- Dumping data for table `role`
 --
 
-LOCK TABLES `services` WRITE;
-/*!40000 ALTER TABLE `services` DISABLE KEYS */;
-/*!40000 ALTER TABLE `services` ENABLE KEYS */;
+LOCK TABLES `role` WRITE;
+/*!40000 ALTER TABLE `role` DISABLE KEYS */;
+/*!40000 ALTER TABLE `role` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
--- Table structure for table `staff`
+-- Table structure for table `service`
 --
 
-DROP TABLE IF EXISTS `staff`;
+DROP TABLE IF EXISTS `service`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `staff` (
-  `staffId` int NOT NULL AUTO_INCREMENT,
-  `staffName` varchar(100) NOT NULL,
-  `staffSurname` varchar(100) NOT NULL,
-  `staffEmail` text NOT NULL,
-  `staffPhone` varchar(100) DEFAULT NULL,
-  `staffRole` enum('Admin','Manager') DEFAULT NULL,
-  `staffPassword` text NOT NULL,
-  PRIMARY KEY (`staffId`)
+CREATE TABLE `service` (
+  `serviceId` int NOT NULL AUTO_INCREMENT,
+  `serviceName` varchar(255) NOT NULL,
+  `serviceDescription` text,
+  `serviceDuration` int NOT NULL DEFAULT '0' COMMENT 'В минутах',
+  `servicePrice` decimal(5,2) NOT NULL DEFAULT '0.00',
+  `serviceCategoryId` int NOT NULL,
+  `serviceStatus` tinyint(1) NOT NULL DEFAULT '1',
+  PRIMARY KEY (`serviceId`),
+  KEY `service_category_categoryId_fk` (`serviceCategoryId`),
+  CONSTRAINT `service_category_categoryId_fk` FOREIGN KEY (`serviceCategoryId`) REFERENCES `category` (`categoryId`) ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `staff`
+-- Dumping data for table `service`
 --
 
-LOCK TABLES `staff` WRITE;
-/*!40000 ALTER TABLE `staff` DISABLE KEYS */;
-/*!40000 ALTER TABLE `staff` ENABLE KEYS */;
+LOCK TABLES `service` WRITE;
+/*!40000 ALTER TABLE `service` DISABLE KEYS */;
+/*!40000 ALTER TABLE `service` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `user`
+--
+
+DROP TABLE IF EXISTS `user`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `user` (
+  `userId` int NOT NULL AUTO_INCREMENT,
+  `userName` varchar(255) NOT NULL,
+  `userSurname` varchar(255) NOT NULL,
+  `userPhone` varchar(12) NOT NULL,
+  `userSex` enum('male','female') NOT NULL,
+  `userRoleId` int NOT NULL,
+  `userPassword` text,
+  `userStatus` tinyint(1) NOT NULL DEFAULT '1',
+  PRIMARY KEY (`userId`),
+  KEY `user_role_roleId_fk` (`userRoleId`),
+  CONSTRAINT `user_role_roleId_fk` FOREIGN KEY (`userRoleId`) REFERENCES `role` (`roleId`) ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `user`
+--
+
+LOCK TABLES `user` WRITE;
+/*!40000 ALTER TABLE `user` DISABLE KEYS */;
+/*!40000 ALTER TABLE `user` ENABLE KEYS */;
 UNLOCK TABLES;
 SET @@SESSION.SQL_LOG_BIN = @MYSQLDUMP_TEMP_LOG_BIN;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -154,4 +174,4 @@ SET @@SESSION.SQL_LOG_BIN = @MYSQLDUMP_TEMP_LOG_BIN;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-09-29  8:52:25
+-- Dump completed on 2025-10-08 11:57:21
