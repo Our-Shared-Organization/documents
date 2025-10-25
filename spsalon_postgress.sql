@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict dSLHvXmYt6TfNjfdPsYyUB2EprsPoGueV3ZyIkEm9vKlXuz7nnt2Mg5KXg93hPR
+\restrict GX29AsyAgg24B8PtyLi86gx7UuSkscaXGhuUbfd5RMiMU6wtcfDPhu1DSQsjlgm
 
 -- Dumped from database version 17.5 (6bc9ef8)
 -- Dumped by pg_dump version 17.6
@@ -21,27 +21,24 @@ SET row_security = off;
 
 ALTER TABLE IF EXISTS ONLY public."user" DROP CONSTRAINT IF EXISTS user_role_roleid_fk;
 ALTER TABLE IF EXISTS ONLY public.service DROP CONSTRAINT IF EXISTS service_category_categoryid_fk;
+ALTER TABLE IF EXISTS ONLY public.rating DROP CONSTRAINT IF EXISTS rating_user_userlogin_fk_2;
 ALTER TABLE IF EXISTS ONLY public.rating DROP CONSTRAINT IF EXISTS rating_user_userlogin_fk;
-ALTER TABLE IF EXISTS ONLY public.rating DROP CONSTRAINT IF EXISTS rating_master_masterid_fk;
-ALTER TABLE IF EXISTS ONLY public.master DROP CONSTRAINT IF EXISTS master_user_userlogin_fk;
-ALTER TABLE IF EXISTS ONLY public.master_service DROP CONSTRAINT IF EXISTS master_service_service_serviceid_fk;
-ALTER TABLE IF EXISTS ONLY public.master_service DROP CONSTRAINT IF EXISTS master_service_master_masterid_fk;
+ALTER TABLE IF EXISTS ONLY public.master_category DROP CONSTRAINT IF EXISTS master_category_user_userlogin_fk;
+ALTER TABLE IF EXISTS ONLY public.master_category DROP CONSTRAINT IF EXISTS master_category_category_categoryid_fk;
+ALTER TABLE IF EXISTS ONLY public.booking DROP CONSTRAINT IF EXISTS booking_user_userlogin_fk_2;
 ALTER TABLE IF EXISTS ONLY public.booking DROP CONSTRAINT IF EXISTS booking_user_userlogin_fk;
 ALTER TABLE IF EXISTS ONLY public.booking DROP CONSTRAINT IF EXISTS booking_service_serviceid_fk;
-ALTER TABLE IF EXISTS ONLY public.booking DROP CONSTRAINT IF EXISTS booking_master_masterid_fk;
 ALTER TABLE IF EXISTS ONLY public."user" DROP CONSTRAINT IF EXISTS user_pk;
 ALTER TABLE IF EXISTS ONLY public.service DROP CONSTRAINT IF EXISTS service_pk;
 ALTER TABLE IF EXISTS ONLY public.role DROP CONSTRAINT IF EXISTS role_pk;
 ALTER TABLE IF EXISTS ONLY public.rating DROP CONSTRAINT IF EXISTS rating_pk;
-ALTER TABLE IF EXISTS ONLY public.master_service DROP CONSTRAINT IF EXISTS master_service_pk;
-ALTER TABLE IF EXISTS ONLY public.master DROP CONSTRAINT IF EXISTS master_pk;
+ALTER TABLE IF EXISTS ONLY public.master_category DROP CONSTRAINT IF EXISTS master_category_pk;
 ALTER TABLE IF EXISTS ONLY public.category DROP CONSTRAINT IF EXISTS category_pk;
 ALTER TABLE IF EXISTS ONLY public.booking DROP CONSTRAINT IF EXISTS booking_pk;
 ALTER TABLE IF EXISTS public.service ALTER COLUMN serviceid DROP DEFAULT;
 ALTER TABLE IF EXISTS public.role ALTER COLUMN roleid DROP DEFAULT;
 ALTER TABLE IF EXISTS public.rating ALTER COLUMN ratingid DROP DEFAULT;
-ALTER TABLE IF EXISTS public.master_service ALTER COLUMN msid DROP DEFAULT;
-ALTER TABLE IF EXISTS public.master ALTER COLUMN masterid DROP DEFAULT;
+ALTER TABLE IF EXISTS public.master_category ALTER COLUMN mcid DROP DEFAULT;
 ALTER TABLE IF EXISTS public.category ALTER COLUMN categoryid DROP DEFAULT;
 DROP TABLE IF EXISTS public."user";
 DROP SEQUENCE IF EXISTS public.service_serviceid_seq;
@@ -51,9 +48,7 @@ DROP TABLE IF EXISTS public.role;
 DROP SEQUENCE IF EXISTS public.rating_ratingid_seq;
 DROP TABLE IF EXISTS public.rating;
 DROP SEQUENCE IF EXISTS public.master_service_msid_seq;
-DROP TABLE IF EXISTS public.master_service;
-DROP SEQUENCE IF EXISTS public.master_masterid_seq;
-DROP TABLE IF EXISTS public.master;
+DROP TABLE IF EXISTS public.master_category;
 DROP SEQUENCE IF EXISTS public.category_categoryid_seq;
 DROP TABLE IF EXISTS public.category;
 DROP TABLE IF EXISTS public.booking;
@@ -115,7 +110,7 @@ CREATE TABLE public.booking (
     bookingid integer NOT NULL,
     bookinguserlogin character varying(45),
     bookingserviceid integer,
-    bookingmasterid integer,
+    bookingmasterlogin character varying(45),
     bookingstart timestamp without time zone NOT NULL,
     bookingfinish timestamp without time zone,
     bookingstatus public.bookingstatus NOT NULL,
@@ -162,54 +157,17 @@ ALTER SEQUENCE public.category_categoryid_seq OWNED BY public.category.categoryi
 
 
 --
--- Name: master; Type: TABLE; Schema: public; Owner: neondb_owner
+-- Name: master_category; Type: TABLE; Schema: public; Owner: neondb_owner
 --
 
-CREATE TABLE public.master (
-    masterid integer NOT NULL,
-    masteruserlogin character varying(45) NOT NULL,
-    masterspecialization text,
-    masterexperience integer DEFAULT 0 NOT NULL,
-    masterstatus boolean DEFAULT true NOT NULL
+CREATE TABLE public.master_category (
+    mcid integer NOT NULL,
+    mcmasterlogin character varying(45) NOT NULL,
+    mccategoryid integer NOT NULL
 );
 
 
-ALTER TABLE public.master OWNER TO neondb_owner;
-
---
--- Name: master_masterid_seq; Type: SEQUENCE; Schema: public; Owner: neondb_owner
---
-
-CREATE SEQUENCE public.master_masterid_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE public.master_masterid_seq OWNER TO neondb_owner;
-
---
--- Name: master_masterid_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: neondb_owner
---
-
-ALTER SEQUENCE public.master_masterid_seq OWNED BY public.master.masterid;
-
-
---
--- Name: master_service; Type: TABLE; Schema: public; Owner: neondb_owner
---
-
-CREATE TABLE public.master_service (
-    msid integer NOT NULL,
-    msmasterid integer NOT NULL,
-    msserviceid integer NOT NULL
-);
-
-
-ALTER TABLE public.master_service OWNER TO neondb_owner;
+ALTER TABLE public.master_category OWNER TO neondb_owner;
 
 --
 -- Name: master_service_msid_seq; Type: SEQUENCE; Schema: public; Owner: neondb_owner
@@ -230,7 +188,7 @@ ALTER SEQUENCE public.master_service_msid_seq OWNER TO neondb_owner;
 -- Name: master_service_msid_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: neondb_owner
 --
 
-ALTER SEQUENCE public.master_service_msid_seq OWNED BY public.master_service.msid;
+ALTER SEQUENCE public.master_service_msid_seq OWNED BY public.master_category.mcid;
 
 
 --
@@ -240,7 +198,7 @@ ALTER SEQUENCE public.master_service_msid_seq OWNED BY public.master_service.msi
 CREATE TABLE public.rating (
     ratingid integer NOT NULL,
     ratinguserlogin character varying(45) NOT NULL,
-    ratingmasterid integer NOT NULL,
+    ratingmasterlogin character varying(45) NOT NULL,
     ratingtext text NOT NULL,
     ratingstars integer DEFAULT 5 NOT NULL
 );
@@ -369,17 +327,10 @@ ALTER TABLE ONLY public.category ALTER COLUMN categoryid SET DEFAULT nextval('pu
 
 
 --
--- Name: master masterid; Type: DEFAULT; Schema: public; Owner: neondb_owner
+-- Name: master_category mcid; Type: DEFAULT; Schema: public; Owner: neondb_owner
 --
 
-ALTER TABLE ONLY public.master ALTER COLUMN masterid SET DEFAULT nextval('public.master_masterid_seq'::regclass);
-
-
---
--- Name: master_service msid; Type: DEFAULT; Schema: public; Owner: neondb_owner
---
-
-ALTER TABLE ONLY public.master_service ALTER COLUMN msid SET DEFAULT nextval('public.master_service_msid_seq'::regclass);
+ALTER TABLE ONLY public.master_category ALTER COLUMN mcid SET DEFAULT nextval('public.master_service_msid_seq'::regclass);
 
 
 --
@@ -407,7 +358,7 @@ ALTER TABLE ONLY public.service ALTER COLUMN serviceid SET DEFAULT nextval('publ
 -- Data for Name: booking; Type: TABLE DATA; Schema: public; Owner: neondb_owner
 --
 
-COPY public.booking (bookingid, bookinguserlogin, bookingserviceid, bookingmasterid, bookingstart, bookingfinish, bookingstatus, bookingbookedat) FROM stdin;
+COPY public.booking (bookingid, bookinguserlogin, bookingserviceid, bookingmasterlogin, bookingstart, bookingfinish, bookingstatus, bookingbookedat) FROM stdin;
 \.
 
 
@@ -420,18 +371,10 @@ COPY public.category (categoryid, categoryname, categorydescription, categorysta
 
 
 --
--- Data for Name: master; Type: TABLE DATA; Schema: public; Owner: neondb_owner
+-- Data for Name: master_category; Type: TABLE DATA; Schema: public; Owner: neondb_owner
 --
 
-COPY public.master (masterid, masteruserlogin, masterspecialization, masterexperience, masterstatus) FROM stdin;
-\.
-
-
---
--- Data for Name: master_service; Type: TABLE DATA; Schema: public; Owner: neondb_owner
---
-
-COPY public.master_service (msid, msmasterid, msserviceid) FROM stdin;
+COPY public.master_category (mcid, mcmasterlogin, mccategoryid) FROM stdin;
 \.
 
 
@@ -439,7 +382,7 @@ COPY public.master_service (msid, msmasterid, msserviceid) FROM stdin;
 -- Data for Name: rating; Type: TABLE DATA; Schema: public; Owner: neondb_owner
 --
 
-COPY public.rating (ratingid, ratinguserlogin, ratingmasterid, ratingtext, ratingstars) FROM stdin;
+COPY public.rating (ratingid, ratinguserlogin, ratingmasterlogin, ratingtext, ratingstars) FROM stdin;
 \.
 
 
@@ -448,6 +391,9 @@ COPY public.rating (ratingid, ratinguserlogin, ratingmasterid, ratingtext, ratin
 --
 
 COPY public.role (roleid, rolename) FROM stdin;
+1	user
+2	master
+3	manager
 \.
 
 
@@ -464,6 +410,7 @@ COPY public.service (serviceid, servicename, servicedescription, serviceduration
 --
 
 COPY public."user" (userlogin, username, usersurname, userphone, usersex, userroleid, userpassword, userstatus) FROM stdin;
+testlogin	test	test	test	male	1	123	t
 \.
 
 
@@ -472,13 +419,6 @@ COPY public."user" (userlogin, username, usersurname, userphone, usersex, userro
 --
 
 SELECT pg_catalog.setval('public.category_categoryid_seq', 1, false);
-
-
---
--- Name: master_masterid_seq; Type: SEQUENCE SET; Schema: public; Owner: neondb_owner
---
-
-SELECT pg_catalog.setval('public.master_masterid_seq', 1, false);
 
 
 --
@@ -499,7 +439,7 @@ SELECT pg_catalog.setval('public.rating_ratingid_seq', 1, false);
 -- Name: role_roleid_seq; Type: SEQUENCE SET; Schema: public; Owner: neondb_owner
 --
 
-SELECT pg_catalog.setval('public.role_roleid_seq', 1, false);
+SELECT pg_catalog.setval('public.role_roleid_seq', 1, true);
 
 
 --
@@ -526,19 +466,11 @@ ALTER TABLE ONLY public.category
 
 
 --
--- Name: master master_pk; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
+-- Name: master_category master_category_pk; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
-ALTER TABLE ONLY public.master
-    ADD CONSTRAINT master_pk PRIMARY KEY (masterid);
-
-
---
--- Name: master_service master_service_pk; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
---
-
-ALTER TABLE ONLY public.master_service
-    ADD CONSTRAINT master_service_pk PRIMARY KEY (msid);
+ALTER TABLE ONLY public.master_category
+    ADD CONSTRAINT master_category_pk PRIMARY KEY (mcid);
 
 
 --
@@ -574,14 +506,6 @@ ALTER TABLE ONLY public."user"
 
 
 --
--- Name: booking booking_master_masterid_fk; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
---
-
-ALTER TABLE ONLY public.booking
-    ADD CONSTRAINT booking_master_masterid_fk FOREIGN KEY (bookingmasterid) REFERENCES public.master(masterid) ON UPDATE CASCADE;
-
-
---
 -- Name: booking booking_service_serviceid_fk; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
@@ -598,35 +522,27 @@ ALTER TABLE ONLY public.booking
 
 
 --
--- Name: master_service master_service_master_masterid_fk; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
+-- Name: booking booking_user_userlogin_fk_2; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
-ALTER TABLE ONLY public.master_service
-    ADD CONSTRAINT master_service_master_masterid_fk FOREIGN KEY (msmasterid) REFERENCES public.master(masterid) ON UPDATE CASCADE;
-
-
---
--- Name: master_service master_service_service_serviceid_fk; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
---
-
-ALTER TABLE ONLY public.master_service
-    ADD CONSTRAINT master_service_service_serviceid_fk FOREIGN KEY (msserviceid) REFERENCES public.service(serviceid);
+ALTER TABLE ONLY public.booking
+    ADD CONSTRAINT booking_user_userlogin_fk_2 FOREIGN KEY (bookinguserlogin) REFERENCES public."user"(userlogin) ON UPDATE CASCADE;
 
 
 --
--- Name: master master_user_userlogin_fk; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
+-- Name: master_category master_category_category_categoryid_fk; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
-ALTER TABLE ONLY public.master
-    ADD CONSTRAINT master_user_userlogin_fk FOREIGN KEY (masteruserlogin) REFERENCES public."user"(userlogin) ON UPDATE CASCADE;
+ALTER TABLE ONLY public.master_category
+    ADD CONSTRAINT master_category_category_categoryid_fk FOREIGN KEY (mccategoryid) REFERENCES public.category(categoryid) ON UPDATE CASCADE;
 
 
 --
--- Name: rating rating_master_masterid_fk; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
+-- Name: master_category master_category_user_userlogin_fk; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
-ALTER TABLE ONLY public.rating
-    ADD CONSTRAINT rating_master_masterid_fk FOREIGN KEY (ratingmasterid) REFERENCES public.master(masterid) ON UPDATE CASCADE;
+ALTER TABLE ONLY public.master_category
+    ADD CONSTRAINT master_category_user_userlogin_fk FOREIGN KEY (mcmasterlogin) REFERENCES public."user"(userlogin) ON UPDATE CASCADE;
 
 
 --
@@ -635,6 +551,14 @@ ALTER TABLE ONLY public.rating
 
 ALTER TABLE ONLY public.rating
     ADD CONSTRAINT rating_user_userlogin_fk FOREIGN KEY (ratinguserlogin) REFERENCES public."user"(userlogin) ON UPDATE CASCADE;
+
+
+--
+-- Name: rating rating_user_userlogin_fk_2; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
+--
+
+ALTER TABLE ONLY public.rating
+    ADD CONSTRAINT rating_user_userlogin_fk_2 FOREIGN KEY (ratingmasterlogin) REFERENCES public."user"(userlogin) ON UPDATE CASCADE;
 
 
 --
@@ -654,8 +578,22 @@ ALTER TABLE ONLY public."user"
 
 
 --
+-- Name: DEFAULT PRIVILEGES FOR SEQUENCES; Type: DEFAULT ACL; Schema: public; Owner: cloud_admin
+--
+
+ALTER DEFAULT PRIVILEGES FOR ROLE cloud_admin IN SCHEMA public GRANT ALL ON SEQUENCES TO neon_superuser WITH GRANT OPTION;
+
+
+--
+-- Name: DEFAULT PRIVILEGES FOR TABLES; Type: DEFAULT ACL; Schema: public; Owner: cloud_admin
+--
+
+ALTER DEFAULT PRIVILEGES FOR ROLE cloud_admin IN SCHEMA public GRANT ALL ON TABLES TO neon_superuser WITH GRANT OPTION;
+
+
+--
 -- PostgreSQL database dump complete
 --
 
-\unrestrict dSLHvXmYt6TfNjfdPsYyUB2EprsPoGueV3ZyIkEm9vKlXuz7nnt2Mg5KXg93hPR
+\unrestrict GX29AsyAgg24B8PtyLi86gx7UuSkscaXGhuUbfd5RMiMU6wtcfDPhu1DSQsjlgm
 
